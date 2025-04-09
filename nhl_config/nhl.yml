@@ -1,0 +1,146 @@
+          - type: custom-api
+            title: NHL Today
+            cache: 5s
+            url: https://api-web.nhle.com/v1/score/now # http://192.168.50.79:5050/nhl
+            template: |
+              {{ $myTeam := "ALL" }}
+              {{ $games := .JSON.Array "games" }}
+
+              {{ define "gameItem" }}
+              <table>
+                <tr>
+                  <td>
+                    <a target="_blank" class="size-h4 color-highlight block text-truncate" href="https://www.nhl.com{{ .String "gameCenterLink" }}/">
+                      {{ if .Exists "situation" }}
+                        {{ if .Exists "situation.awayTeam.situationDescriptions" }}
+                          <span style="color: red;">{{ .String "awayTeam.name.default" }}</span> vs {{ .String "homeTeam.name.default" }}
+                        {{ end }}
+                        {{ if .Exists "situation.homeTeam.situationDescriptions" }}
+                          {{ .String "awayTeam.name.default" }} vs <span style="color: green;">{{ .String "homeTeam.name.default" }}</span>
+                        {{ end }}
+                      </a>
+                      {{ else }}
+                      <a target="_blank" class="size-h4 color-highlight block text-truncate" href="https://www.nhl.com{{ .String "gameCenterLink" }}/">
+                        {{ .String "awayTeam.name.default" }} vs {{ .String "homeTeam.name.default" }}
+                      </a>
+                    {{ end }}
+                  </td>
+                  <tr>
+                    <td>
+                        {{ if .Exists "situation" }}
+                          {{ if .Exists "situation.awayTeam.situationDescriptions" }}
+                            {{ range $index, $desc := .Array "situation.awayTeam.situationDescriptions" }}
+                              <span style="color: red;"> {{ $desc.Value }} </span>
+                            {{ end }} 
+                          {{ end }}
+                          {{ if .Exists "situation.homeTeam.situationDescriptions" }}
+                              {{ range $index, $desc := .Array "situation.homeTeam.situationDescriptions" }}
+                                <span style="color: green;"> {{ $desc.Value }} </span>
+                              {{ end }}
+                          {{ end }}
+                            <span> {{ .String "situation.timeRemaining" }} </span>
+                        {{ end }}
+                    </td>
+                  </tr>
+                </tr>
+                </table>
+                <table>
+                  <tr>
+                    <td>
+                      <img style="float: left" width="50" height="auto" src={{ .String "awayTeam.logo" }}>
+                    </td>
+                    <td>
+                      <p style="font-size:25px">{{ .String "awayTeam.score" }}</p>
+                    </td>
+                    <td>
+                      <p style="font-size:25px">-</p>
+                    </td>
+                    <td>
+                      <p style="font-size:25px">{{ .String "homeTeam.score" }}</p>
+                    </td>
+                    <td>
+                      <img style="float: left" width="50" height="auto" src={{ .String "homeTeam.logo" }}>
+                    </td>
+                    <td>
+                      {{ if or (eq (.String "gameState") "OFF") (eq (.String "gameState") "FINAL") }}
+                        <p>Final</p>
+                      {{ else if or (eq (.String "gameState") "FUT") (eq (.String "gameState") "PRE") }}
+                        {{ $utc := .String "startTimeUTC" }}
+                        {{ $hour := (slice $utc 11 13) }}
+                        {{ $min := (slice $utc 14 16) }}
+                        {{ if eq $hour "23" }}7:{{ $min }} PM
+                        {{ else if eq $hour "00" }}8:{{ $min }} PM
+                        {{ else if eq $hour "01" }}9:{{ $min }} PM
+                        {{ else if eq $hour "02" }}10:{{ $min }} PM
+                        {{ else if eq $hour "03" }}11:{{ $min }} PM
+                        {{ else if eq $hour "04" }}12:{{ $min }} AM
+                        {{ else if eq $hour "05" }}1:{{ $min }} AM
+                        {{ else if eq $hour "06" }}2:{{ $min }} AM
+                        {{ else if eq $hour "07" }}3:{{ $min }} AM
+                        {{ else if eq $hour "08" }}4:{{ $min }} AM
+                        {{ else if eq $hour "09" }}5:{{ $min }} AM
+                        {{ else if eq $hour "10" }}6:{{ $min }} AM
+                        {{ else if eq $hour "11" }}7:{{ $min }} AM
+                        {{ else if eq $hour "12" }}8:{{ $min }} AM
+                        {{ else if eq $hour "13" }}9:{{ $min }} AM
+                        {{ else if eq $hour "14" }}10:{{ $min }} AM
+                        {{ else if eq $hour "15" }}11:{{ $min }} AM
+                        {{ else if eq $hour "16" }}12:{{ $min }} PM
+                        {{ else if eq $hour "17" }}1:{{ $min }} PM
+                        {{ else if eq $hour "18" }}2:{{ $min }} PM
+                        {{ else if eq $hour "19" }}3:{{ $min }} PM
+                        {{ else if eq $hour "20" }}4:{{ $min }} PM
+                        {{ else if eq $hour "21" }}5:{{ $min }} PM
+                        {{ else if eq $hour "22" }}6:{{ $min }} PM
+                        {{ else }}{{ $hour }}:{{ $min }} UTC{{ end }}
+                      {{ else if or (eq (.String "gameState") "LIVE") (eq (.String "gameState") "CRIT") }}
+                        {{ if eq (.Get "period").Int 1 }}
+                          {{ if eq (.Get "clock.inIntermission").Int 1 }}
+                            <p>{{ .String "period" }}st Int {{ .String "clock.timeRemaining" }}</p>
+                          {{ else }}
+                            <p>{{ .String "period" }}st {{ .String "clock.timeRemaining" }}</p>
+                          {{ end }}
+                        {{ else if eq (.Get "period").Int 2 }}
+                          {{ if eq (.Get "clock.inIntermission").Int 1 }}
+                            <p>{{ .String "period" }}nd Int {{ .String "clock.timeRemaining" }}</p>
+                          {{ else }}
+                            <p>{{ .String "period" }}nd {{ .String "clock.timeRemaining" }}</p>
+                          {{ end }}
+                        {{ else if eq (.Get "period").Int 3 }}
+                          {{ if eq (.Get "clock.inIntermission").Int 1 }}
+                            <p>{{ .String "period" }}rd Int {{ .String "clock.timeRemaining" }}</p>
+                          {{ else }}
+                            <p>{{ .String "period" }}rd {{ .String "clock.timeRemaining" }}</p>
+                          {{ end }}
+                        {{ else }}
+                          <p>{{ .String "period" }} {{ .String "clock.timeRemaining" }}</p>
+                        {{ end }}
+                      {{ else }}
+                        <p>{{ .String "gameState" }}</p>
+                      {{ end }}
+                    </td>
+                  </tr>
+                </table>
+              {{ end }}
+
+              <ul class="list list-gap-10 collapsible-container" data-collapse-after="10">
+                <!-- First pass: not FINAL/OFF games -->
+                {{ range $game := $games }}
+                  {{ if and (or (eq ($game.String "homeTeam.abbrev") $myTeam) (eq ($game.String "awayTeam.abbrev") $myTeam) (eq "ALL" $myTeam)) }}
+                    {{ $state := $game.String "gameState" }}
+                    {{ if not (or (eq $state "FINAL") (eq $state "OFF")) }}
+                      {{ template "gameItem" $game }}
+                    {{ end }}
+                  {{ end }}
+                {{ end }}
+
+                <!-- Second pass: FINAL/OFF games only -->
+                {{ range $game := $games }}
+                  {{ if and (or (eq ($game.String "homeTeam.abbrev") $myTeam) (eq ($game.String "awayTeam.abbrev") $myTeam) (eq "ALL" $myTeam)) }}
+                    {{ $state := $game.String "gameState" }}
+                    {{ if or (eq $state "FINAL") (eq $state "OFF") }}
+                      {{ template "gameItem" $game }}
+                    {{ end }}
+                  {{ end }}
+                {{ end }}
+              </ul>
