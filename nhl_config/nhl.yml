@@ -1,16 +1,16 @@
           - type: custom-api
             title: NHL Today
             cache: 5s
-            url: https://api-web.nhle.com/v1/score/now
+            url: https://api-web.nhle.com/v1/score/now # http://192.168.50.79:5050/nhl
             template: |
               {{ $myTeam := "ALL" }}
               
               <style>
-                .tooltip {
+              .tooltip {
                   position: relative;
                   display: inline-block;
-                }
-                .tooltip .tooltiptext {
+              }
+              .tooltip .tooltiptext {
                   visibility: hidden;
                   width: 120px;
                   background-color: black;
@@ -22,10 +22,10 @@
                   /* Position the tooltip */
                   position: absolute;
                   z-index: 1;
-                }
-                .tooltip:hover .tooltiptext {
+              }
+              .tooltip:hover .tooltiptext {
                   visibility: visible;
-                }
+              }
               </style>
 
               {{ $games := .JSON.Array "games" }}
@@ -44,140 +44,139 @@
                     {{ $timeScored := .String "timeInPeriod" }}
                     {{ $periodScored := .Int "period" }}
                     {{ if eq $awayTeam $teamAbbrev }}
-                      {{ $awayTeamScores = (printf "%s %s %s(%d)" $awayTeamScores $playerName $timeScored $periodScored) }}
+                        {{ $awayTeamScores = (printf "%s %s %s(%d)" $awayTeamScores $playerName $timeScored $periodScored) }}
                     {{ else if eq $homeTeam $teamAbbrev }}
-                      {{ $homeTeamScores = (printf "%s %s %s(%d)" $homeTeamScores $playerName $timeScored $periodScored) }}
-                  {{ end }}
+                        {{ $homeTeamScores = (printf "%s %s %s(%d)" $homeTeamScores $playerName $timeScored $periodScored) }}
+                    {{ end }}
                 {{ end }}
-                {{ $test := "test" }}
                 {{ $gameState := .String "gameState" }}
                 {{ $currentLabel := "" }}
                 {{ if or (eq $gameState "OFF") (eq $gameState "FINAL") }}
-                  {{ $lastPeriodType := .String "gameOutcome.lastPeriodType" }}
-                  {{ $currentLabel = "Final" }}
-                  {{ if or (eq $lastPeriodType "OT") (eq $lastPeriodType "SO") }}
+                    {{ $lastPeriodType := .String "gameOutcome.lastPeriodType" }}
+                    {{ $currentLabel = "Final" }}
+                    {{ if or (eq $lastPeriodType "OT") (eq $lastPeriodType "SO") }}
                     {{ $currentLabel = (printf "%s %s" $currentLabel $lastPeriodType) }}
-                  {{ end }}
+                    {{ end }}
                 {{ end }}
                 {{ if or (eq $gameState "FUT") (eq $gameState "PRE") }}
-                  {{ $gameTime := (.String "startTimeUTC" | parseTime "rfc3339").In now.Location }}
-                  {{ $currentLabel = (printf "%02d:%02d" $gameTime.Hour $gameTime.Minute) }}
+                    {{ $gameTime := (.String "startTimeUTC" | parseTime "rfc3339").In now.Location }}
+                    {{ $currentLabel = (printf "%02d:%02d" $gameTime.Hour $gameTime.Minute) }}
                 {{ end }}
                 {{ if or (eq $gameState "LIVE") (eq $gameState "CRIT") }}
-                  {{ $period := .Int "period" }}
-                  {{ $periodString := .String "period" }}
-                  {{ $timeRemaining := .String "clock.timeRemaining" }}
-                  {{ $intermission := .Int "clock.inIntermission" }}
-                  {{ $periodType := .String "periodDescriptor.periodType" }}
-                  {{ if eq $period 1 }}
+                    {{ $period := .Int "period" }}
+                    {{ $periodString := .String "period" }}
+                    {{ $timeRemaining := .String "clock.timeRemaining" }}
+                    {{ $intermission := .Int "clock.inIntermission" }}
+                    {{ $periodType := .String "periodDescriptor.periodType" }}
+                    {{ if eq $period 1 }}
                     {{ $addonValue := "st" }}
                     {{ if eq $intermission 1 }}
-                      {{ $addonValue = printf "%s Int" $addonValue }}
+                        {{ $addonValue = printf "%s Int" $addonValue }}
                     {{ end }}
                     {{ $currentLabel = (printf "%s%s %s" $periodString $addonValue $timeRemaining) }}
-                  {{ else if eq $period 2 }}
+                    {{ else if eq $period 2 }}
                     {{ $addonValue := "nd" }}
                     {{ if eq $intermission 1 }}
-                      {{ $addonValue = printf "%s Int" $addonValue }}
+                        {{ $addonValue = printf "%s Int" $addonValue }}
                     {{ end }}
                     {{ $currentLabel = (printf "%s%s %s" $periodString $addonValue $timeRemaining) }}
-                  {{ else if eq $period 3 }}
+                    {{ else if eq $period 3 }}
                     {{ $addonValue := "rd" }}
                     {{ if eq $intermission 1 }}
-                      {{ $addonValue = printf "%s Int" $addonValue }}
+                        {{ $addonValue = printf "%s Int" $addonValue }}
                     {{ end }}
                     {{ $currentLabel = (printf "%s%s %s" $periodString $addonValue $timeRemaining) }}
-                  {{ else }}
+                    {{ else }}
                     {{ $currentLabel = $periodType }} 
-                      {{ if not (eq $periodType "SO") }}
+                        {{ if not (eq $periodType "SO") }}
                         {{ $currentLabel = (printf "%s %s" $periodType $timeRemaining) }}
-                      {{ end }}
-                  {{ end }}
+                        {{ end }}
+                    {{ end }}
                 {{ end }}
                 {{ if .Exists "situation" }}
-                  {{ if .Exists "situation.awayTeam.situationDescriptions" }}
+                    {{ if .Exists "situation.awayTeam.situationDescriptions" }}
                     {{ $awayTeamColor = "color-negative" }}
                     {{ range $index, $desc := .Array "situation.awayTeam.situationDescriptions" }}
-                      {{ $situationDescriptionAway = (printf "%s %s" $situationDescriptionAway $desc.Value) }}
+                        {{ $situationDescriptionAway = (printf "%s %s" $situationDescriptionAway $desc.Value) }}
                     {{ end }} 
-                  {{ end }}
-                  {{ if .Exists "situation.homeTeam.situationDescriptions" }}
+                    {{ end }}
+                    {{ if .Exists "situation.homeTeam.situationDescriptions" }}
                     {{ $homeTeamColor = "color-positive" }}
                     {{ range $index, $desc := .Array "situation.homeTeam.situationDescriptions" }}
-                      {{ $situationDescriptionHome = (printf "%s %s" $situationDescriptionHome $desc.Value) }}
+                        {{ $situationDescriptionHome = (printf "%s %s" $situationDescriptionHome $desc.Value) }}
                     {{ end }}
-                  {{ end }}
                 {{ end }}
+              {{ end }}
 
-                <table>
+              <table>
                   <tr>
-                    <td>
+                  <td>
                       <a target="_blank" class="size-h3 color-highlight block text-truncate" href="https://www.nhl.com{{ .String "gameCenterLink" }}/">
-                        <span class= {{ $awayTeamColor }} > {{ .String "awayTeam.name.default" }} </span> vs <span class= {{ $homeTeamColor }} > {{ .String "homeTeam.name.default" }} </span>
+                      <span class= {{ $awayTeamColor }} > {{ .String "awayTeam.name.default" }} </span> vs <span class= {{ $homeTeamColor }} > {{ .String "homeTeam.name.default" }} </span>
                       </a>
-                    </td>
+                  </td>
                   </tr>
                   <tr>
-                    <td>
+                  <td>
                       <span class= {{ $awayTeamColor }} > {{ $situationDescriptionAway }} </span> <span class= {{ $homeTeamColor }} > {{ $situationDescriptionHome }} </span> <span> {{ .String "situation.timeRemaining" }} </span>
-                    </td>
+                  </td>
                   </tr>
-                </table>
-                <table>
+              </table>
+              <table>
                   <tr>
-                    <td class="tooltip">
+                  <td class="tooltip">
                       <img style="float: left" width="50" height="auto" src={{ .String "awayTeam.logo" }}>
                       {{ if not (eq $awayTeamScores "") }}
-                        <span class="tooltiptext"> {{ $awayTeamScores }} </span>
+                      <span class="tooltiptext"> {{ $awayTeamScores }} </span>
                       {{ end }}
-                    </td>
-                    <td class="tooltip">
+                  </td>
+                  <td class="tooltip">
                       <div>
-                        <p style="font-size:25px"> {{ .String "awayTeam.score" }} </p>
-                        {{ if not (eq $awayTeamScores "") }}
+                      <p style="font-size:25px"> {{ .String "awayTeam.score" }} </p>
+                      {{ if not (eq $awayTeamScores "") }}
                           <span class="tooltiptext"> {{ $awayTeamScores }} </span>
-                        {{ end }}
+                      {{ end }}
                       </div>
-                    </td>
-                    <td>
+                  </td>
+                  <td>
                       <p style="font-size:25px">-</p>
-                    </td>
-                    <td class="tooltip">
+                  </td>
+                  <td class="tooltip">
                       <div>
-                        <p style="font-size:25px"> {{ .String "homeTeam.score" }} </p>
-                        {{ if not (eq $homeTeamScores "") }}
+                      <p style="font-size:25px"> {{ .String "homeTeam.score" }} </p>
+                      {{ if not (eq $homeTeamScores "") }}
                           <span class="tooltiptext"> {{ $homeTeamScores }} </span>
-                        {{ end }}
+                      {{ end }}
                       </div>
-                    </td>
-                    <td class="tooltip">
+                  </td>
+                  <td class="tooltip">
                       <img style="float: left" width="50" height="auto" src={{ .String "homeTeam.logo" }}>
                       {{ if not (eq $homeTeamScores "") }}
-                        <span class="tooltiptext"> {{ $homeTeamScores }} </span>
+                      <span class="tooltiptext"> {{ $homeTeamScores }} </span>
                       {{ end }}
-                    </td>
-                    <td>
+                  </td>
+                  <td>
                       {{ $currentLabel }}
-                    </td>
+                  </td>
                   </tr>
-                </table>
+              </table>
               {{ end }}
 
               <ul class="list list-gap-10 collapsible-container" data-collapse-after="10">
-                {{ range $game := $games }}
+              {{ range $game := $games }}
                   {{ if and (or (eq ($game.String "homeTeam.abbrev") $myTeam) (eq ($game.String "awayTeam.abbrev") $myTeam) (eq "ALL" $myTeam)) }}
-                    {{ $state := $game.String "gameState" }}
-                    {{ if not (or (eq $state "FINAL") (eq $state "OFF")) }}
+                  {{ $state := $game.String "gameState" }}
+                  {{ if not (or (eq $state "FINAL") (eq $state "OFF")) }}
                       {{ template "gameItem" $game }}
-                    {{ end }}
                   {{ end }}
-                {{ end }}
-                {{ range $game := $games }}
+                  {{ end }}
+              {{ end }}
+              {{ range $game := $games }}
                   {{ if and (or (eq ($game.String "homeTeam.abbrev") $myTeam) (eq ($game.String "awayTeam.abbrev") $myTeam) (eq "ALL" $myTeam)) }}
-                    {{ $state := $game.String "gameState" }}
-                    {{ if or (eq $state "FINAL") (eq $state "OFF") }}
+                  {{ $state := $game.String "gameState" }}
+                  {{ if or (eq $state "FINAL") (eq $state "OFF") }}
                       {{ template "gameItem" $game }}
-                    {{ end }}
                   {{ end }}
-                {{ end }}
+                  {{ end }}
+              {{ end }}
               </ul>
