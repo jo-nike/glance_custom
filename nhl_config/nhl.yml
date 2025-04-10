@@ -4,87 +4,154 @@
             url: https://api-web.nhle.com/v1/score/now # http://192.168.50.79:5050/nhl
             template: |
               {{ $myTeam := "ALL" }}
-              {{ $games := .JSON.Array "games" }}
               
               <style>
-              .tooltip {
-                position: relative;
-                display: inline-block;
-              }
+                .tooltip {
+                  position: relative;
+                  display: inline-block;
+                }
+                .tooltip .tooltiptext {
+                  visibility: hidden;
+                  width: 120px;
+                  background-color: black;
+                  color: #fff;
+                  text-align: center;
+                  border-radius: 6px;
+                  padding: 5px 0;
 
-              .tooltip .tooltiptext {
-                visibility: hidden;
-                width: 120px;
-                background-color: black;
-                color: #fff;
-                text-align: center;
-                border-radius: 6px;
-                padding: 5px 0;
-
-                /* Position the tooltip */
-                position: absolute;
-                z-index: 1;
-              }
-
-              .tooltip:hover .tooltiptext {
-                visibility: visible;
-              }
+                  /* Position the tooltip */
+                  position: absolute;
+                  z-index: 1;
+                }
+                .tooltip:hover .tooltiptext {
+                  visibility: visible;
+                }
               </style>
 
+              {{ $games := .JSON.Array "games" }}
               {{ define "gameItem" }}
-              {{ $awayTeamColor := "" }}
-              {{ $homeTeamColor := "" }}
-              <table>
-                <tr>
-                  <td>
-                      {{ if .Exists "situation" }}
-                        {{ if .Exists "situation.awayTeam.situationDescriptions" }}
-                          {{ $awayTeamColor = "red" }}
-                        {{ end }}
-                        {{ if .Exists "situation.homeTeam.situationDescriptions" }}
-                          {{ $homeTeamColor = "green" }}
-                        {{ end }}
+                {{ $awayTeamColor := "" }}
+                {{ $homeTeamColor := "" }}
+                {{ $situationDescriptionHome := ""}}
+                {{ $situationDescriptionAway := ""}}
+                {{ $homeTeam := .String "homeTeam.abbrev" }}
+                {{ $awayTeam := .String "awayTeam.abbrev" }}
+                {{ $homeTeamScores := "" }}
+                {{ $awayTeamScores := "" }}
+                {{ range $index, $desc := .Array "goals" }}
+                    {{ $teamAbbrev := .String "teamAbbrev" }}
+                    {{ $playerName := .String "name.default" }}
+                    {{ $timeScored := .String "timeInPeriod" }}
+                    {{ $periodScored := .Int "period" }}
+                    {{ if eq $awayTeam $teamAbbrev }}
+                      {{ $awayTeamScores = (printf "%s %s %s(%d)" $awayTeamScores $playerName $timeScored $periodScored) }}
+                    {{ else if eq $homeTeam $teamAbbrev }}
+                      {{ $homeTeamScores = (printf "%s %s %s(%d)" $homeTeamScores $playerName $timeScored $periodScored) }}
+                  {{ end }}
+                {{ end }}
+                {{ $test := "test" }}
+                {{ $gameState := .String "gameState" }}
+                {{ $currentLabel := "" }}
+                {{ if or (eq $gameState "OFF") (eq $gameState "FINAL") }}
+                  {{ $lastPeriodType := .String "gameOutcome.lastPeriodType" }}
+                  {{ $currentLabel = "Final"}}
+                  {{ if or (eq $lastPeriodType "OT") (eq $lastPeriodType "SO") }}
+                    {{ $currentLabel = (printf "%s %s" $currentLabel $lastPeriodType) }} </p>
+                  {{ end }}
+                {{ end }}
+                {{ if or (eq $gameState "FUT") (eq $gameState "PRE") }}
+                  {{ $utc := .String "startTimeUTC" }}
+                  {{ $hour := (slice $utc 11 13) }}
+                  {{ $min := (slice $utc 14 16) }}
+                  {{ if eq $hour "23" }}{{ $currentLabel = (printf "7:%s PM" $min) }}
+                    {{ else if eq $hour "00" }}{{ $currentLabel = (printf "8:%s PM" $min) }}
+                    {{ else if eq $hour "01" }}{{ $currentLabel = (printf "9:%s PM" $min) }}
+                    {{ else if eq $hour "02" }}{{ $currentLabel = (printf "10:%s PM" $min) }}
+                    {{ else if eq $hour "03" }}{{ $currentLabel = (printf "11:%s PM" $min) }}
+                    {{ else if eq $hour "04" }}{{ $currentLabel = (printf "12:%s AM" $min) }}
+                    {{ else if eq $hour "05" }}{{ $currentLabel = (printf "1:%s AM" $min) }}
+                    {{ else if eq $hour "06" }}{{ $currentLabel = (printf "2:%s AM" $min) }}
+                    {{ else if eq $hour "07" }}{{ $currentLabel = (printf "3:%s AM" $min) }}
+                    {{ else if eq $hour "08" }}{{ $currentLabel = (printf "4:%s AM" $min) }}
+                    {{ else if eq $hour "09" }}{{ $currentLabel = (printf "5:%s AM" $min) }}
+                    {{ else if eq $hour "10" }}{{ $currentLabel = (printf "6:%s AM" $min) }}
+                    {{ else if eq $hour "11" }}{{ $currentLabel = (printf "7:%s AM" $min) }}
+                    {{ else if eq $hour "12" }}{{ $currentLabel = (printf "8:%s AM" $min) }}
+                    {{ else if eq $hour "13" }}{{ $currentLabel = (printf "9:%s AM" $min) }}
+                    {{ else if eq $hour "14" }}{{ $currentLabel = (printf "10:%s AM" $min) }}
+                    {{ else if eq $hour "15" }}{{ $currentLabel = (printf "11:%s AM" $min) }}
+                    {{ else if eq $hour "16" }}{{ $currentLabel = (printf "12:%s PM" $min) }}
+                    {{ else if eq $hour "17" }}{{ $currentLabel = (printf "13:%s PM" $min) }}
+                    {{ else if eq $hour "18" }}{{ $currentLabel = (printf "14:%s PM" $min) }}
+                    {{ else if eq $hour "19" }}{{ $currentLabel = (printf "15:%s PM" $min) }}
+                    {{ else if eq $hour "20" }}{{ $currentLabel = (printf "16:%s PM" $min) }}
+                    {{ else if eq $hour "21" }}{{ $currentLabel = (printf "17:%s PM" $min) }}
+                    {{ else if eq $hour "22" }}{{ $currentLabel = (printf "18:%s PM" $min) }}
+                    {{ else }} {{ $currentLabel = (printf "%s:%s UTC" $hour $min) }}
+                  {{ end }}
+                {{ end }}
+                {{ if or (eq $gameState "LIVE") (eq $gameState "CRIT") }}
+                  {{ $period := .Int "period" }}
+                  {{ $periodString := .String "period" }}
+                  {{ $timeRemaining := .String "clock.timeRemaining" }}
+                  {{ $intermission := .Int "clock.inIntermission" }}
+                  {{ $periodType := .String "periodDescriptor.periodType" }}
+                  {{ if eq $period 1 }}
+                    {{ $addonValue := "st" }}
+                    {{ if eq $intermission 1 }}
+                      {{ $addonValue = printf "%s Int" $addonValue }}
+                    {{ end }}
+                    {{ $currentLabel = (printf "%s%s %s" $periodString $addonValue $timeRemaining) }}
+                  {{ else if eq $period 2 }}
+                    {{ $addonValue := "nd" }}
+                    {{ if eq $intermission 1 }}
+                      {{ $addonValue = printf "%s Int" $addonValue }}
+                    {{ end }}
+                    {{ $currentLabel = (printf "%s%s %s" $periodString $addonValue $timeRemaining) }}
+                  {{ else if eq $period 3 }}
+                    {{ $addonValue := "rd" }}
+                    {{ if eq $intermission 1 }}
+                      {{ $addonValue = printf "%s Int" $addonValue }}
+                    {{ end }}
+                    {{ $currentLabel = (printf "%s%s %s" $periodString $addonValue $timeRemaining) }}
+                  {{ else }}
+                    {{ $currentLabel = $periodType }} 
+                      {{ if not (eq $periodType "SO") }}
+                        {{ $currentLabel = (printf "%s %s" $periodType $timeRemaining) }}
                       {{ end }}
-                      <a target="_blank" class="size-h4 color-highlight block text-truncate" href="https://www.nhl.com{{ .String "gameCenterLink" }}/">
-                        <span style="color: {{ $awayTeamColor }}"> {{ .String "awayTeam.name.default" }} </span> vs <span style="color: {{ $homeTeamColor }} "> {{ .String "homeTeam.name.default" }} </span>
-                      </a>
-                  </td>
-                  <tr>
-                    <td>
-                        {{ if .Exists "situation" }}
-                          {{ if .Exists "situation.awayTeam.situationDescriptions" }}
-                            {{ range $index, $desc := .Array "situation.awayTeam.situationDescriptions" }}
-                              <span style="color: {{ $awayTeamColor }};"> {{ $desc.Value }} </span>
-                            {{ end }} 
-                          {{ end }}
-                          {{ if .Exists "situation.homeTeam.situationDescriptions" }}
-                              {{ range $index, $desc := .Array "situation.homeTeam.situationDescriptions" }}
-                                <span style="color: {{ $homeTeamColor }};"> {{ $desc.Value }} </span>
-                              {{ end }}
-                          {{ end }}
-                            <span> {{ .String "situation.timeRemaining" }} </span>
-                        {{ end }}
-                    </td>
-                  </tr>
-                </tr>
-                </table>
-                <table>
-                  {{ $root := . }}
-                  {{ $homeTeam := .String "homeTeam.abbrev" }}
-                  {{ $awayTeam := .String "awayTeam.abbrev" }}
-                  {{ $homeTeamScores := "" }}
-                  {{ $awayTeamScores := "" }}
-                  {{ range $index, $desc := .Array "goals" }}
-                      {{ $teamAbbrev := .String "teamAbbrev" }}
-                      {{ $playerName := .String "name.default" }}
-                      {{ $timeScored := .String "timeInPeriod" }}
-                      {{ $periodScored := .Int "period" }}
-                      {{ if eq $awayTeam $teamAbbrev }}
-                        {{ $awayTeamScores = (printf "%s %s %s(%d)" $awayTeamScores $playerName $timeScored $periodScored ) }}
-                      {{ else if eq $homeTeam $teamAbbrev }}
-                        {{ $homeTeamScores = (printf "%s %s %s(%d)" $homeTeamScores $playerName $timeScored $periodScored ) }}
+                    </p>
+                  {{ end }}
+                {{ end }}
+                {{ if .Exists "situation" }}
+                  {{ if .Exists "situation.awayTeam.situationDescriptions" }}
+                    {{ $awayTeamColor = "red" }}
+                    {{ range $index, $desc := .Array "situation.awayTeam.situationDescriptions" }}
+                      {{ $situationDescriptionAway = (printf "%s %s" $situationDescriptionAway $desc.Value) }}
+                    {{ end }} 
+                  {{ end }}
+                  {{ if .Exists "situation.homeTeam.situationDescriptions" }}
+                    {{ $homeTeamColor = "green" }}
+                    {{ range $index, $desc := .Array "situation.homeTeam.situationDescriptions" }}
+                      {{ $situationDescriptionHome = (printf "%s %s" $situationDescriptionHome $desc.Value) }}
                     {{ end }}
                   {{ end }}
+                {{ end }}
+
+                <table>
+                  <tr>
+                    <td>
+                      <a target="_blank" class="size-h3 color-highlight block text-truncate" href="https://www.nhl.com{{ .String "gameCenterLink" }}/">
+                        <span style="color: {{ $awayTeamColor }}"> {{ .String "awayTeam.name.default" }} </span> vs <span style="color: {{ $homeTeamColor }} "> {{ .String "homeTeam.name.default" }} </span>
+                      </a>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <span style="color: {{ $awayTeamColor }}"> {{ $situationDescriptionAway }} </span> <span style="color: {{ $homeTeamColor }} "> {{ $situationDescriptionHome }} </span> <span> {{ .String "situation.timeRemaining" }} </span>
+                    </td>
+                  </tr>
+                </table>
+                <table>
                   <tr>
                     <td class="tooltip">
                       <img style="float: left" width="50" height="auto" src={{ .String "awayTeam.logo" }}>
@@ -110,81 +177,12 @@
                       <span class="tooltiptext"> {{ $homeTeamScores }} </span>
                     </td>
                     <td>
-                      {{ $gameState := .String "gameState" }}
-                      {{ if or (eq $gameState "OFF") (eq $gameState "FINAL") }}
-                        <p>Final
-                        {{ if eq (.String "gameOutcome.lastPeriodType") "OT" }}
-                           OT</p>
-                        {{ end }}
-                        {{ if eq (.String "gameOutcome.lastPeriodType") "SO" }}
-                           SO</p>
-                        {{ end }}
-                      {{ else if or (eq $gameState "FUT") (eq $gameState "PRE") }}
-                        {{ $utc := .String "startTimeUTC" }}
-                        {{ $hour := (slice $utc 11 13) }}
-                        {{ $min := (slice $utc 14 16) }}
-                        {{ if eq $hour "23" }}7:{{ $min }} PM
-                        {{ else if eq $hour "00" }}8:{{ $min }} PM
-                        {{ else if eq $hour "01" }}9:{{ $min }} PM
-                        {{ else if eq $hour "02" }}10:{{ $min }} PM
-                        {{ else if eq $hour "03" }}11:{{ $min }} PM
-                        {{ else if eq $hour "04" }}12:{{ $min }} AM
-                        {{ else if eq $hour "05" }}1:{{ $min }} AM
-                        {{ else if eq $hour "06" }}2:{{ $min }} AM
-                        {{ else if eq $hour "07" }}3:{{ $min }} AM
-                        {{ else if eq $hour "08" }}4:{{ $min }} AM
-                        {{ else if eq $hour "09" }}5:{{ $min }} AM
-                        {{ else if eq $hour "10" }}6:{{ $min }} AM
-                        {{ else if eq $hour "11" }}7:{{ $min }} AM
-                        {{ else if eq $hour "12" }}8:{{ $min }} AM
-                        {{ else if eq $hour "13" }}9:{{ $min }} AM
-                        {{ else if eq $hour "14" }}10:{{ $min }} AM
-                        {{ else if eq $hour "15" }}11:{{ $min }} AM
-                        {{ else if eq $hour "16" }}12:{{ $min }} PM
-                        {{ else if eq $hour "17" }}1:{{ $min }} PM
-                        {{ else if eq $hour "18" }}2:{{ $min }} PM
-                        {{ else if eq $hour "19" }}3:{{ $min }} PM
-                        {{ else if eq $hour "20" }}4:{{ $min }} PM
-                        {{ else if eq $hour "21" }}5:{{ $min }} PM
-                        {{ else if eq $hour "22" }}6:{{ $min }} PM
-                        {{ else }} {{ $hour }} : {{ $min }} UTC {{ end }}
-                      {{ else if or (eq $gameState "LIVE") (eq $gameState "CRIT") }}
-                        {{ $period := .Int "period" }}
-                        {{ $periodString := .String "period" }}
-                        {{ $timeRemaining := .String "clock.timeRemaining" }}
-                        {{ $intermission := .Int "clock.inIntermission" }}
-                        {{ if eq $period 1 }}
-                          {{ $addonValue := "st" }}
-                          {{ if eq $intermission 1 }}
-                            {{ $addonValue = printf "%s Int" $addonValue }}
-                          {{ end }}
-                          <p>{{ $periodString }}{{ $addonValue }} {{ $timeRemaining }}</p>
-                        {{ else if eq $period 2 }}
-                          {{ $addonValue := "nd" }}
-                          {{ if eq $intermission 1 }}
-                            {{ $addonValue = printf "%s Int" $addonValue }}
-                          {{ end }}
-                          <p>{{ $periodString }}{{ $addonValue }} {{ $timeRemaining }}</p>
-                        {{ else if eq $period 3 }}
-                          {{ $addonValue := "rd" }}
-                          {{ if eq $intermission 1 }}
-                            {{ $addonValue = printf "%s Int" $addonValue }}
-                          {{ end }}
-                          <p>{{ $periodString }}{{ $addonValue }} {{ $timeRemaining }}</p>
-                        {{ else }}
-                          <p>{{ .String "periodDescriptor.periodType" }} 
-                            {{ if not (eq (.String "periodDescriptor.periodType") "SO") }}
-                              {{ $timeRemaining }}
-                            {{ end }}
-                          </p>
-                        {{ end }}
-                      {{ else }}
-                        <p>{{ $gameState }}</p>
-                      {{ end }}
+                      {{ $currentLabel }}
                     </td>
                   </tr>
                 </table>
               {{ end }}
+
               <ul class="list list-gap-10 collapsible-container" data-collapse-after="10">
                 {{ range $game := $games }}
                   {{ if and (or (eq ($game.String "homeTeam.abbrev") $myTeam) (eq ($game.String "awayTeam.abbrev") $myTeam) (eq "ALL" $myTeam)) }}
