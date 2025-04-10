@@ -32,35 +32,34 @@
               </style>
 
               {{ define "gameItem" }}
+              {{ $awayTeamColor := "" }}
+              {{ $homeTeamColor := "" }}
               <table>
                 <tr>
                   <td>
-                    <a target="_blank" class="size-h4 color-highlight block text-truncate" href="https://www.nhl.com{{ .String "gameCenterLink" }}/">
                       {{ if .Exists "situation" }}
                         {{ if .Exists "situation.awayTeam.situationDescriptions" }}
-                          <span style="color: red;">{{ .String "awayTeam.name.default" }}</span> vs {{ .String "homeTeam.name.default" }}
+                          {{ $awayTeamColor = "red" }}
                         {{ end }}
                         {{ if .Exists "situation.homeTeam.situationDescriptions" }}
-                          {{ .String "awayTeam.name.default" }} vs <span style="color: green;">{{ .String "homeTeam.name.default" }}</span>
+                          {{ $homeTeamColor = "green" }}
                         {{ end }}
-                      </a>
-                      {{ else }}
+                      {{ end }}
                       <a target="_blank" class="size-h4 color-highlight block text-truncate" href="https://www.nhl.com{{ .String "gameCenterLink" }}/">
-                        {{ .String "awayTeam.name.default" }} vs {{ .String "homeTeam.name.default" }}
+                        <span style="color: {{ $awayTeamColor }}"> {{ .String "awayTeam.name.default" }} </span> vs <span style="color: {{ $homeTeamColor }} "> {{ .String "homeTeam.name.default" }} </span>
                       </a>
-                    {{ end }}
                   </td>
                   <tr>
                     <td>
                         {{ if .Exists "situation" }}
                           {{ if .Exists "situation.awayTeam.situationDescriptions" }}
                             {{ range $index, $desc := .Array "situation.awayTeam.situationDescriptions" }}
-                              <span style="color: red;"> {{ $desc.Value }} </span>
+                              <span style="color: {{ $awayTeamColor }};"> {{ $desc.Value }} </span>
                             {{ end }} 
                           {{ end }}
                           {{ if .Exists "situation.homeTeam.situationDescriptions" }}
                               {{ range $index, $desc := .Array "situation.homeTeam.situationDescriptions" }}
-                                <span style="color: green;"> {{ $desc.Value }} </span>
+                                <span style="color: {{ $homeTeamColor }};"> {{ $desc.Value }} </span>
                               {{ end }}
                           {{ end }}
                             <span> {{ .String "situation.timeRemaining" }} </span>
@@ -71,8 +70,8 @@
                 </table>
                 <table>
                   {{ $root := . }}
-                  {{ $homeTeam := ((index (.Array "homeTeam.abbrev") 0).Value) }}
-                  {{ $awayTeam := ((index (.Array "awayTeam.abbrev") 0).Value) }}
+                  {{ $homeTeam := .String "homeTeam.abbrev" }}
+                  {{ $awayTeam := .String "awayTeam.abbrev" }}
                   {{ $homeTeamScores := "" }}
                   {{ $awayTeamScores := "" }}
                   {{ range $index, $desc := .Array "goals" }}
@@ -111,7 +110,8 @@
                       <span class="tooltiptext"> {{ $homeTeamScores }} </span>
                     </td>
                     <td>
-                      {{ if or (eq (.String "gameState") "OFF") (eq (.String "gameState") "FINAL") }}
+                      {{ $gameState := .String "gameState" }}
+                      {{ if or (eq $gameState "OFF") (eq $gameState "FINAL") }}
                         <p>Final
                         {{ if eq (.String "gameOutcome.lastPeriodType") "OT" }}
                            OT</p>
@@ -119,7 +119,7 @@
                         {{ if eq (.String "gameOutcome.lastPeriodType") "SO" }}
                            SO</p>
                         {{ end }}
-                      {{ else if or (eq (.String "gameState") "FUT") (eq (.String "gameState") "PRE") }}
+                      {{ else if or (eq $gameState "FUT") (eq $gameState "PRE") }}
                         {{ $utc := .String "startTimeUTC" }}
                         {{ $hour := (slice $utc 11 13) }}
                         {{ $min := (slice $utc 14 16) }}
@@ -147,35 +147,39 @@
                         {{ else if eq $hour "20" }}4:{{ $min }} PM
                         {{ else if eq $hour "21" }}5:{{ $min }} PM
                         {{ else if eq $hour "22" }}6:{{ $min }} PM
-                        {{ else }}{{ $hour }}:{{ $min }} UTC{{ end }}
-                      {{ else if or (eq (.String "gameState") "LIVE") (eq (.String "gameState") "CRIT") }}
-                        {{ if eq (.Int "period") 1 }}
-                          {{ if eq (.Int "clock.inIntermission") 1 }}
-                            <p>{{ .String "period" }}st Int {{ .String "clock.timeRemaining" }}</p>
-                          {{ else }}
-                            <p>{{ .String "period" }}st {{ .String "clock.timeRemaining" }}</p>
+                        {{ else }} {{ $hour }} : {{ $min }} UTC {{ end }}
+                      {{ else if or (eq $gameState "LIVE") (eq $gameState "CRIT") }}
+                        {{ $period := .Int "period" }}
+                        {{ $periodString := .String "period" }}
+                        {{ $timeRemaining := .String "clock.timeRemaining" }}
+                        {{ $intermission := .Int "clock.inIntermission" }}
+                        {{ if eq $period 1 }}
+                          {{ $addonValue := "st" }}
+                          {{ if eq $intermission 1 }}
+                            {{ $addonValue = printf "%s Int" $addonValue }}
                           {{ end }}
-                        {{ else if eq (.Int "period") 2 }}
-                          {{ if eq (.Int "clock.inIntermission") 1 }}
-                            <p>{{ .String "period" }}nd Int {{ .String "clock.timeRemaining" }}</p>
-                          {{ else }}
-                            <p>{{ .String "period" }}nd {{ .String "clock.timeRemaining" }}</p>
+                          <p>{{ $periodString }}{{ $addonValue }} {{ $timeRemaining }}</p>
+                        {{ else if eq $period 2 }}
+                          {{ $addonValue := "nd" }}
+                          {{ if eq $intermission 1 }}
+                            {{ $addonValue = printf "%s Int" $addonValue }}
                           {{ end }}
-                        {{ else if eq (.Int "period") 3 }}
-                          {{ if eq (.Int "clock.inIntermission") 1 }}
-                            <p>{{ .String "period" }}rd Int {{ .String "clock.timeRemaining" }}</p>
-                          {{ else }}
-                            <p>{{ .String "period" }}rd {{ .String "clock.timeRemaining" }}</p>
+                          <p>{{ $periodString }}{{ $addonValue }} {{ $timeRemaining }}</p>
+                        {{ else if eq $period 3 }}
+                          {{ $addonValue := "rd" }}
+                          {{ if eq $intermission 1 }}
+                            {{ $addonValue = printf "%s Int" $addonValue }}
                           {{ end }}
+                          <p>{{ $periodString }}{{ $addonValue }} {{ $timeRemaining }}</p>
                         {{ else }}
                           <p>{{ .String "periodDescriptor.periodType" }} 
                             {{ if not (eq (.String "periodDescriptor.periodType") "SO") }}
-                              {{ .String "clock.timeRemaining" }}
+                              {{ $timeRemaining }}
                             {{ end }}
                           </p>
                         {{ end }}
                       {{ else }}
-                        <p>{{ .String "gameState" }}</p>
+                        <p>{{ $gameState }}</p>
                       {{ end }}
                     </td>
                   </tr>
