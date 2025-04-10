@@ -1,7 +1,7 @@
           - type: custom-api
             title: NHL Today
             cache: 5s
-            url: https://api-web.nhle.com/v1/score/now # http://192.168.50.79:5050/nhl
+            url: https://api-web.nhle.com/v1/score/now
             template: |
               {{ $myTeam := "ALL" }}
               
@@ -96,13 +96,13 @@
                 {{ end }}
                 {{ if .Exists "situation" }}
                   {{ if .Exists "situation.awayTeam.situationDescriptions" }}
-                    {{ $awayTeamColor = "red" }}
+                    {{ $awayTeamColor = "color-negative" }}
                     {{ range $index, $desc := .Array "situation.awayTeam.situationDescriptions" }}
                       {{ $situationDescriptionAway = (printf "%s %s" $situationDescriptionAway $desc.Value) }}
                     {{ end }} 
                   {{ end }}
                   {{ if .Exists "situation.homeTeam.situationDescriptions" }}
-                    {{ $homeTeamColor = "green" }}
+                    {{ $homeTeamColor = "color-positive" }}
                     {{ range $index, $desc := .Array "situation.homeTeam.situationDescriptions" }}
                       {{ $situationDescriptionHome = (printf "%s %s" $situationDescriptionHome $desc.Value) }}
                     {{ end }}
@@ -113,13 +113,13 @@
                   <tr>
                     <td>
                       <a target="_blank" class="size-h3 color-highlight block text-truncate" href="https://www.nhl.com{{ .String "gameCenterLink" }}/">
-                        <span style="color: {{ $awayTeamColor }}"> {{ .String "awayTeam.name.default" }} </span> vs <span style="color: {{ $homeTeamColor }} "> {{ .String "homeTeam.name.default" }} </span>
+                        <span class= {{ $awayTeamColor }} > {{ .String "awayTeam.name.default" }} </span> vs <span class= {{ $homeTeamColor }} > {{ .String "homeTeam.name.default" }} </span>
                       </a>
                     </td>
                   </tr>
                   <tr>
                     <td>
-                      <span style="color: {{ $awayTeamColor }}"> {{ $situationDescriptionAway }} </span> <span style="color: {{ $homeTeamColor }} "> {{ $situationDescriptionHome }} </span> <span> {{ .String "situation.timeRemaining" }} </span>
+                      <span class= {{ $awayTeamColor }} > {{ $situationDescriptionAway }} </span> <span class= {{ $homeTeamColor }} > {{ $situationDescriptionHome }} </span> <span> {{ .String "situation.timeRemaining" }} </span>
                     </td>
                   </tr>
                 </table>
