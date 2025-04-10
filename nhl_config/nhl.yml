@@ -32,8 +32,8 @@
               {{ define "gameItem" }}
                 {{ $awayTeamColor := "" }}
                 {{ $homeTeamColor := "" }}
-                {{ $situationDescriptionHome := ""}}
-                {{ $situationDescriptionAway := ""}}
+                {{ $situationDescriptionHome := "" }}
+                {{ $situationDescriptionAway := "" }}
                 {{ $homeTeam := .String "homeTeam.abbrev" }}
                 {{ $awayTeam := .String "awayTeam.abbrev" }}
                 {{ $homeTeamScores := "" }}
@@ -54,41 +54,14 @@
                 {{ $currentLabel := "" }}
                 {{ if or (eq $gameState "OFF") (eq $gameState "FINAL") }}
                   {{ $lastPeriodType := .String "gameOutcome.lastPeriodType" }}
-                  {{ $currentLabel = "Final"}}
+                  {{ $currentLabel = "Final" }}
                   {{ if or (eq $lastPeriodType "OT") (eq $lastPeriodType "SO") }}
                     {{ $currentLabel = (printf "%s %s" $currentLabel $lastPeriodType) }}
                   {{ end }}
                 {{ end }}
                 {{ if or (eq $gameState "FUT") (eq $gameState "PRE") }}
-                  {{ $utc := .String "startTimeUTC" }}
-                  {{ $hour := (slice $utc 11 13) }}
-                  {{ $min := (slice $utc 14 16) }}
-                  {{ if eq $hour "23" }}{{ $currentLabel = (printf "7:%s PM" $min) }}
-                    {{ else if eq $hour "00" }}{{ $currentLabel = (printf "8:%s PM" $min) }}
-                    {{ else if eq $hour "01" }}{{ $currentLabel = (printf "9:%s PM" $min) }}
-                    {{ else if eq $hour "02" }}{{ $currentLabel = (printf "10:%s PM" $min) }}
-                    {{ else if eq $hour "03" }}{{ $currentLabel = (printf "11:%s PM" $min) }}
-                    {{ else if eq $hour "04" }}{{ $currentLabel = (printf "12:%s AM" $min) }}
-                    {{ else if eq $hour "05" }}{{ $currentLabel = (printf "1:%s AM" $min) }}
-                    {{ else if eq $hour "06" }}{{ $currentLabel = (printf "2:%s AM" $min) }}
-                    {{ else if eq $hour "07" }}{{ $currentLabel = (printf "3:%s AM" $min) }}
-                    {{ else if eq $hour "08" }}{{ $currentLabel = (printf "4:%s AM" $min) }}
-                    {{ else if eq $hour "09" }}{{ $currentLabel = (printf "5:%s AM" $min) }}
-                    {{ else if eq $hour "10" }}{{ $currentLabel = (printf "6:%s AM" $min) }}
-                    {{ else if eq $hour "11" }}{{ $currentLabel = (printf "7:%s AM" $min) }}
-                    {{ else if eq $hour "12" }}{{ $currentLabel = (printf "8:%s AM" $min) }}
-                    {{ else if eq $hour "13" }}{{ $currentLabel = (printf "9:%s AM" $min) }}
-                    {{ else if eq $hour "14" }}{{ $currentLabel = (printf "10:%s AM" $min) }}
-                    {{ else if eq $hour "15" }}{{ $currentLabel = (printf "11:%s AM" $min) }}
-                    {{ else if eq $hour "16" }}{{ $currentLabel = (printf "12:%s PM" $min) }}
-                    {{ else if eq $hour "17" }}{{ $currentLabel = (printf "13:%s PM" $min) }}
-                    {{ else if eq $hour "18" }}{{ $currentLabel = (printf "14:%s PM" $min) }}
-                    {{ else if eq $hour "19" }}{{ $currentLabel = (printf "15:%s PM" $min) }}
-                    {{ else if eq $hour "20" }}{{ $currentLabel = (printf "16:%s PM" $min) }}
-                    {{ else if eq $hour "21" }}{{ $currentLabel = (printf "17:%s PM" $min) }}
-                    {{ else if eq $hour "22" }}{{ $currentLabel = (printf "18:%s PM" $min) }}
-                    {{ else }} {{ $currentLabel = (printf "%s:%s UTC" $hour $min) }}
-                  {{ end }}
+                  {{ $gameTime := (.String "startTimeUTC" | parseTime "rfc3339").In now.Location }}
+                  {{ $currentLabel = (printf "%02d:%02d" $gameTime.Hour $gameTime.Minute) }}
                 {{ end }}
                 {{ if or (eq $gameState "LIVE") (eq $gameState "CRIT") }}
                   {{ $period := .Int "period" }}
