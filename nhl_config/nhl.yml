@@ -155,12 +155,16 @@
                   <tr>
                     <td class="tooltip">
                       <img style="float: left" width="50" height="auto" src={{ .String "awayTeam.logo" }}>
-                      <span class="tooltiptext"> {{ $awayTeamScores }} </span>
+                      {{ if not (eq $awayTeamScores "") }}
+                        <span class="tooltiptext"> {{ $awayTeamScores }} </span>
+                      {{ end }}
                     </td>
                     <td class="tooltip">
                       <div>
                         <p style="font-size:25px"> {{ .String "awayTeam.score" }} </p>
-                        <span class="tooltiptext"> {{ $awayTeamScores }} </span>
+                        {{ if not (eq $awayTeamScores "") }}
+                          <span class="tooltiptext"> {{ $awayTeamScores }} </span>
+                        {{ end }}
                       </div>
                     </td>
                     <td>
@@ -169,12 +173,16 @@
                     <td class="tooltip">
                       <div>
                         <p style="font-size:25px"> {{ .String "homeTeam.score" }} </p>
-                        <span class="tooltiptext"> {{ $homeTeamScores }} </span>
+                        {{ if not (eq $homeTeamScores "") }}
+                          <span class="tooltiptext"> {{ $homeTeamScores }} </span>
+                        {{ end }}
                       </div>
                     </td>
                     <td class="tooltip">
                       <img style="float: left" width="50" height="auto" src={{ .String "homeTeam.logo" }}>
-                      <span class="tooltiptext"> {{ $homeTeamScores }} </span>
+                      {{ if not (eq $homeTeamScores "") }}
+                        <span class="tooltiptext"> {{ $homeTeamScores }} </span>
+                      {{ end }}
                     </td>
                     <td>
                       {{ $currentLabel }}
