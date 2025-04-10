@@ -1,7 +1,7 @@
           - type: custom-api
             title: NHL Today
             cache: 5s
-            url: http://192.168.50.79:5050/nhl 
+            url: https://api-web.nhle.com/v1/score/now
             template: |
               {{ $myTeam := "ALL" }}
               
