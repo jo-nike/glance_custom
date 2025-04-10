@@ -56,7 +56,7 @@
                   {{ $lastPeriodType := .String "gameOutcome.lastPeriodType" }}
                   {{ $currentLabel = "Final"}}
                   {{ if or (eq $lastPeriodType "OT") (eq $lastPeriodType "SO") }}
-                    {{ $currentLabel = (printf "%s %s" $currentLabel $lastPeriodType) }} </p>
+                    {{ $currentLabel = (printf "%s %s" $currentLabel $lastPeriodType) }}
                   {{ end }}
                 {{ end }}
                 {{ if or (eq $gameState "FUT") (eq $gameState "PRE") }}
@@ -119,7 +119,6 @@
                       {{ if not (eq $periodType "SO") }}
                         {{ $currentLabel = (printf "%s %s" $periodType $timeRemaining) }}
                       {{ end }}
-                    </p>
                   {{ end }}
                 {{ end }}
                 {{ if .Exists "situation" }}
