@@ -1,7 +1,7 @@
           - type: custom-api
             title: NHL Today
             cache: 5s
-            url: https://api-web.nhle.com/v1/score/now # http://192.168.50.79:5050/nhl
+            url: http://192.168.50.79:5050/nhl 
             template: |
               {{ $myTeam := "ALL" }}
               
@@ -30,6 +30,7 @@
 
               {{ $games := .JSON.Array "games" }}
               {{ define "gameItem" }}
+                {{ $toolTipEnabled := true }}
                 {{ $awayTeamColor := "" }}
                 {{ $homeTeamColor := "" }}
                 {{ $situationDescriptionHome := "" }}
@@ -97,13 +98,13 @@
                     {{ if .Exists "situation.awayTeam.situationDescriptions" }}
                         {{ $awayTeamColor = "color-negative" }}
                         {{ range $index, $desc := .Array "situation.awayTeam.situationDescriptions" }}
-                            {{ $situationDescriptionAway = (printf "%s %s" $situationDescriptionAway $desc.Value) }}
+                              {{ $situationDescriptionAway = (printf "%s %s" $situationDescriptionAway $desc.Value) }}
                         {{ end }} 
                     {{ end }}
                     {{ if .Exists "situation.homeTeam.situationDescriptions" }}
                         {{ $homeTeamColor = "color-positive" }}
                         {{ range $index, $desc := .Array "situation.homeTeam.situationDescriptions" }}
-                          {{ $situationDescriptionHome = (printf "%s %s" $situationDescriptionHome $desc.Value) }}
+                            {{ $situationDescriptionHome = (printf "%s %s" $situationDescriptionHome $desc.Value) }}
                         {{ end }}
                     {{ end }}
                 {{ end }}
@@ -111,7 +112,7 @@
                     <tr>
                         <td>
                             <a target="_blank" class="size-h3 color-highlight block text-truncate" href="https://www.nhl.com{{ .String "gameCenterLink" }}/">
-                            <span class= {{ $awayTeamColor }} > {{ .String "awayTeam.name.default" }} </span> vs <span class= {{ $homeTeamColor }} > {{ .String "homeTeam.name.default" }} </span>
+                              <span class= {{ $awayTeamColor }} > {{ .String "awayTeam.name.default" }} </span> vs <span class= {{ $homeTeamColor }} > {{ .String "homeTeam.name.default" }} </span>
                             </a>
                         </td>
                     </tr>
@@ -125,14 +126,14 @@
                     <tr>
                         <td class="tooltip">
                             <img style="float: left" width="50" height="auto" src={{ .String "awayTeam.logo" }}>
-                            {{ if not (eq $awayTeamScores "") }}
+                            {{ if and (not (eq $awayTeamScores "")) (eq $toolTipEnabled true) }}
                                 <span class="tooltiptext"> {{ $awayTeamScores }} </span>
                             {{ end }}
                         </td>
                         <td class="tooltip">
                           <div>
                           <p style="font-size:25px"> {{ .String "awayTeam.score" }} </p>
-                          {{ if not (eq $awayTeamScores "") }}
+                          {{ if and (not (eq $awayTeamScores "")) (eq $toolTipEnabled true) }}
                               <span class="tooltiptext"> {{ $awayTeamScores }} </span>
                           {{ end }}
                           </div>
@@ -143,14 +144,14 @@
                         <td class="tooltip">
                           <div>
                           <p style="font-size:25px"> {{ .String "homeTeam.score" }} </p>
-                          {{ if not (eq $homeTeamScores "") }}
+                          {{ if and (not (eq $homeTeamScores "")) (eq $toolTipEnabled true) }}
                               <span class="tooltiptext"> {{ $homeTeamScores }} </span>
                           {{ end }}
                           </div>
                         </td>
                         <td class="tooltip">
                             <img style="float: left" width="50" height="auto" src={{ .String "homeTeam.logo" }}>
-                            {{ if not (eq $homeTeamScores "") }}
+                            {{ if and (not (eq $homeTeamScores "")) (eq $toolTipEnabled true) }}
                             <span class="tooltiptext"> {{ $homeTeamScores }} </span>
                             {{ end }}
                         </td>
